@@ -84,11 +84,28 @@ namespace PartB
         }
         public bool WriteFile(FileModelClass fileModelToWrite)
         {
+            try
+            {
+                Writing(fileModelToWrite);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("We are having some issues writing your file, writing to app root folder.");
+            }
+            finally
+            {
+                fileModelToWrite.FilePath = "";
+                Writing(fileModelToWrite);
+            }
+            return true;
+        }
+
+        public void Writing(FileModelClass fileModelToWrite)
+        {
             using (var writeText = new StreamWriter(fileModelToWrite.FilePath + fileModelToWrite.FileName))
             {
                 writeText.WriteLine("Text example");
             }
-            return true;
         }
 
         public void FolderService(FileModelClass fileModelToWrite)
@@ -96,7 +113,6 @@ namespace PartB
             if (!Directory.Exists(fileModelToWrite.FilePath))
             {
                 Directory.CreateDirectory(fileModelToWrite.FilePath);
-                
             }
         }
         public void WritingReport(FileModelClass fileModelToWrite)
