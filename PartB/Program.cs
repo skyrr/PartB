@@ -8,7 +8,7 @@ namespace PartB
 {
     internal class Program
     {
-        // 
+        // application starting point
         private static void Main(string[] args)
         {
             var app = new ApplicationController();
@@ -20,7 +20,7 @@ namespace PartB
             Console.Read();
         }
     }
-
+    // Business logic
     public class ApplicationController
     {
         private const int FilesToWrite = 3;
@@ -36,7 +36,7 @@ namespace PartB
             _fileWriter = new FileWriter(_fileEntity);
             QueueService = new QueueService();
         }
-
+        // Adding files to the queue
         public void PopulateQueue()
         {
             InitializeComponents();
@@ -49,7 +49,7 @@ namespace PartB
                 QueueService.EnqueueEntity(fileEntityNewElement);
             }
         }
-
+        // Dequeue queue and writing the files
         public void DequeueQueue()
         {
             while (QueueService.EntityQueue.Count > 0)
@@ -59,12 +59,13 @@ namespace PartB
             }
         }
     }
+    // File Model
     public class FileModelClass
     {
         public string FileName { get; set; }
         public string FilePath { get; set; }
     }
-
+    // File writer utility
     public class FileWriter
     {
         private readonly FileModelClass _fileModelClass;
@@ -103,7 +104,7 @@ namespace PartB
             Console.WriteLine("File {0} was created successfully!", fileModelToWrite.FileName);
         }
     }
-
+    // Queue Service
     public class QueueService
     {
         public Queue<FileModelClass> EntityQueue = new Queue<FileModelClass>();
