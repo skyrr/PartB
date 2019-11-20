@@ -1,75 +1,120 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace PartB
 {
-    class Program
+    internal class Program
     {
-        private const int FilesToWrite = 10;
-        private const string FilePath = "\\FilesFolder\\";
-
-        static void Main(string[] args)
+        // 
+        private static void Main(string[] args)
         {
+            var app = new ApplicationController();
+
             Console.WriteLine("App started!");
-            
-            FileClass fileClass = new FileClass() {filePath = FilePath };
-
-            FileWriter fileWriter = new FileWriter(fileClass);
-
-            for (int i = 0; i < FilesToWrite; i++)
-            {
-                fileClass.fileName = "file" + i + ".txt";
-                fileWriter.FileWritingWorker(fileClass);
-            }
-
+            app.PopulateQueue();
+            app.DequeueQueue();
             Console.WriteLine("App completed!");
             Console.Read();
         }
     }
 
-    public class FileClass
+    public class ApplicationController
     {
-        public string fileName { get; set; }
-        public string filePath { get; set; }
-    }
-    public class FileWriter
-    {
-        private FileClass _fileClass;
+        private const int FilesToWrite = 3;
+        private const string FilePath = "\\FilesFolder\\";
+        private FileModelClass _fileEntity;
+        private FileWriter _fileWriter;
 
-        public FileWriter(FileClass fileClass)
+        public QueueService QueueService;
+
+        private void InitializeComponents()
         {
-            _fileClass = fileClass;
+            _fileEntity = new FileModelClass() { FilePath = FilePath };
+            _fileWriter = new FileWriter(_fileEntity);
+            QueueService = new QueueService();
         }
-        public void FileWritingWorker(FileClass fileToWrite)
+
+        public void PopulateQueue()
         {
-            FolderService(_fileClass);
-            
-            if (WriteFile(_fileClass))
+            InitializeComponents();
+
+            for (var i = 0; i < FilesToWrite; i++)
             {
-                WritingReport();
+                Console.WriteLine("Please, enter file name: ");
+                var fileName = Console.ReadLine();
+                var fileEntityNewElement = new FileModelClass {FilePath = FilePath, FileName = fileName + ".txt"};
+                QueueService.EnqueueEntity(fileEntityNewElement);
             }
         }
-        public bool WriteFile(FileClass fileToWrite)
+
+        public void DequeueQueue()
         {
-            using (StreamWriter writetext = new StreamWriter(_fileClass.filePath + _fileClass.fileName))
+            while (QueueService.EntityQueue.Count > 0)
             {
-                writetext.WriteLine("Text example");
+                var val = QueueService.DequeueEntity();
+                _fileWriter.FileWritingWorker(val);
+            }
+        }
+    }
+    public class FileModelClass
+    {
+        public string FileName { get; set; }
+        public string FilePath { get; set; }
+    }
+
+    public class FileWriter
+    {
+        private readonly FileModelClass _fileModelClass;
+        public FileWriter(FileModelClass fileModelClass)
+        {
+            _fileModelClass = fileModelClass;
+        }
+        public void FileWritingWorker(FileModelClass fileModelToWrite)
+        {
+            FolderService(fileModelToWrite);
+            
+            if (WriteFile(fileModelToWrite))
+            {
+                WritingReport(fileModelToWrite);
+            }
+        }
+        public bool WriteFile(FileModelClass fileModelToWrite)
+        {
+            using (var writeText = new StreamWriter(fileModelToWrite.FilePath + fileModelToWrite.FileName))
+            {
+                writeText.WriteLine("Text example");
             }
             return true;
         }
 
-        public void FolderService(FileClass fileToWrite)
+        public void FolderService(FileModelClass fileModelToWrite)
         {
-            if (!Directory.Exists(_fileClass.filePath))
+            if (!Directory.Exists(fileModelToWrite.FilePath))
             {
-                Directory.CreateDirectory(_fileClass.filePath);
+                Directory.CreateDirectory(fileModelToWrite.FilePath);
                 
             }
         }
-        public void WritingReport()
+        public void WritingReport(FileModelClass fileModelToWrite)
         {
-            Console.WriteLine("File {0} was created successfully!", _fileClass.fileName);
+            Console.WriteLine("File {0} was created successfully!", fileModelToWrite.FileName);
+        }
+    }
+
+    public class QueueService
+    {
+        public Queue<FileModelClass> EntityQueue = new Queue<FileModelClass>();
+
+       public void EnqueueEntity(FileModelClass fileEntity)
+        {
+            EntityQueue.Enqueue(fileEntity);
+        }
+       public FileModelClass DequeueEntity()
+        {
+            return EntityQueue.Dequeue() as FileModelClass;
         }
     }
 }
